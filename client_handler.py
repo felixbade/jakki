@@ -36,12 +36,15 @@ class ClientHandler(Thread):
                     break
                 self.broadcast('%s: %s' % (self.nick, line))
         except Exception as e:
+            # This happens when the user kills the connection before registering
+            # TODO: add recv and send functions that handle this
             if repr(e) == "error(54, 'Connection reset by peer')":
                 pass
             else: 
                 traceback.print_exc()
         self.close()
-  
+
+
     def tellWhoArePresent(self):
         if self.other_clients:
             self.connection.send('Currently online:\n')
