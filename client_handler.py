@@ -41,11 +41,6 @@ class ClientHandler(Thread):
             self.close()
             return
         
-        if any(ord(x) in range(32) for x in self.nick):
-            self.connection.send('A nick cannot have control characters or spaces.\n')
-            self.close()
-            return
-
         # Greet other clients
         host = self.address[0]
         port = self.address[1]
