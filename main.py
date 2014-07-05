@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import socket
-import atexit
 
 from client_handler import ClientHandler
 
