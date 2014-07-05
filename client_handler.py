@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import traceback
 from threading import Thread
 
 class ClientHandler(Thread):
@@ -9,63 +10,75 @@ class ClientHandler(Thread):
         Thread.__init__(self)
         self.server = server
         self.connection = connection
-        self.address = address
+        self.host = address[0]
+        self.port = address[1]
         self.nick = None
+        self.other_clients = [x for x in self.server.clients if x is not self]
         self.daemon = True
         self.start()
+        print 'New client from %s:%d' % address
 
     def run(self):
         try:
-            # Tell the new client who are present
-            other_clients = [x for x in self.server.clients if x is not self]
-            if other_clients:
-                self.connection.send('Currently online:\n')
-                longest_nick_length = max(len(client.nick) for client in other_clients)
-                for client in other_clients:
-                    nick = client.nick
-                    host = client.address[0]
-                    port = client.address[1]
-                    space = ' ' * (longest_nick_length + 1 - len(nick))
-                    self.connection.send('%s%s%s:%d\n' % (nick, space, host, port))
-            else:
-                self.connection.send('Nobody online.\n')
+            self.tellWhoArePresent()
            
-            # Ask for a nick
-            self.connection.send('What nick would you like to use?\n')
-            self.nick = self.connection.makefile().readline().strip('\n')
-            
-            if self.nick in [client.nick for client in other_clients]:
-                self.connection.send('That nick is already in use.\n')
-                self.close()
+            self.askForANick()
+            if self.nick is None:
                 return
             
-            if len(self.nick) > 24:
-                self.connection.send('Your nick cannot be longer than 24 characters\n')
-                self.close()
-                return
+            self.greetOtherUsers()
             
-            # Greet other clients
-            host = self.address[0]
-            port = self.address[1]
-            self.broadcast('New user: %s (%s:%d)\n' % (self.nick, host, port))
-            
-            # Broadcast every message forever
-            while True:
+            # Broadcast every message
+            while True:# not self.connection.makefile().closed:
                 line = self.connection.makefile().readline()
                 if line == '':
                     self.broadcast('Quit: %s\n' % self.nick)
-                    self.close()
                     break
-                host = self.address[0]
-                port = self.address[1]
                 self.broadcast('%s: %s' % (self.nick, line))
-        except:
+        except Exception as e:
+            if repr(e) == "error(54, 'Connection reset by peer')":
+                pass
+            else: 
+                traceback.print_exc()
+        self.close()
+  
+    def tellWhoArePresent(self):
+        if self.other_clients:
+            self.connection.send('Currently online:\n')
+            max_nick_length = max(len(client.nick) for client in self.other_clients)
+            for client in self.other_clients:
+                space = ' ' * (max_nick_length + 1 - len(client.nick))
+                self.connection.send('%s%s%s:%d\n' % (client.nick, space, client.host, client.port))
+        else:
+            self.connection.send('Nobody online.\n')
+
+    def askForANick(self):
+        self.connection.send('What nick would you like to use?\n')
+        potential_nick = self.connection.makefile().readline().strip('\n')
+        
+        if potential_nick in [client.nick for client in self.other_clients]:
+            self.connection.send('That nick is already in use.\n')
             self.close()
-    
+            return
+        
+        if len(potential_nick) > 24:
+            self.connection.send('Your nick cannot be longer than 24 characters\n')
+            self.close()
+            return
+
+        self.nick = potential_nick
+        print '(%s:%d) uses nick %s' % (self.host, self.port, self.nick)
+
+    def greetOtherUsers(self):
+        self.broadcast('New user: %s (%s:%d)\n' % (self.nick, self.host, self.port))
+
     def close(self):
-        self.connection.close()
         self.server.clients.remove(self)
-        print 'Lost connection %s:%d' % self.address
+        self.connection.close()
+        if self.nick is not None:
+            print 'Client exited from %s:%d (%s)' % (self.host, self.port, self.nick)
+        else:
+            print 'Client exited from %s:%d' % (self.host, self.port)
 
     def broadcast(self, message):
         for client in self.server.clients:

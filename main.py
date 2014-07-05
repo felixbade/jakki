@@ -17,7 +17,6 @@ class MultiUserServer:
 
         while True:
             connection, address = self.socket.accept()
-            print 'Connection from %s:%d' % address
             new_client = ClientHandler(self, connection, address)
             self.clients.append(new_client)
     
