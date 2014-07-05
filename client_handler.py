@@ -29,7 +29,7 @@ class ClientHandler(Thread):
             self.greetOtherUsers()
             
             # Broadcast every message
-            while True:# not self.connection.makefile().closed:
+            while True:
                 line = self.connection.makefile().readline()
                 if line == '':
                     self.broadcast('Quit: %s\n' % self.nick)
