@@ -26,8 +26,7 @@ class ClientHandler(Thread):
         while True:
             line = self.connection.makefile().readline()
             if line == '':
-                self.broadcast('Quit: %s:%d\n' % self.address)
-                self.server.clients.remove(self)
+                self.broadcast('%s:%d has quit\n' % self.address)
                 break
             host = self.address[0]
             port = self.address[1]
