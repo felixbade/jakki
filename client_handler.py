@@ -17,9 +17,9 @@ class ClientHandler(Thread):
     def run(self):
         try:
             # Tell the new client who are present
-            self.connection.send('Currently online:\n')
             other_clients = [x for x in self.server.clients if x is not self]
             if other_clients:
+                self.connection.send('Currently online:\n')
                 longest_nick_length = max(len(client.nick) for client in other_clients)
                 for client in other_clients:
                     nick = client.nick
@@ -27,6 +27,8 @@ class ClientHandler(Thread):
                     port = client.address[1]
                     space = ' ' * (longest_nick_length + 1 - len(nick))
                     self.connection.send('%s%s%s:%d\n' % (nick, space, host, port))
+            else:
+                self.connection.send('Nobody online.\n')
            
             # Ask for a nick
             self.connection.send('What nick would you like to use?\n')
