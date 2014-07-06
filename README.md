@@ -1,4 +1,4 @@
 jakki
 =====
 
-Just another chat thing
+Just another chat thing. Works with netcat.
