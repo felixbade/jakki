@@ -13,7 +13,7 @@ class ChatServer(MultiUserServer):
         print 'New connection: %s' % client.userhost
         client.nick = None
         
-        client.send('Hello!')
+        client.send('This is a primitive chat server designed by Felix Bade.')
         self.tellWhoArePresent(client)
         client.send('What nick would you like to use?')
     
@@ -32,7 +32,6 @@ class ChatServer(MultiUserServer):
         print 'Lost connection: %s' % client.userhost
 
     def tellWhoArePresent(self, client):
-        client.send('Online: ')
         other_clients = self.getOtherClients(client)
         
         if other_clients:
