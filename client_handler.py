@@ -44,7 +44,6 @@ class ClientHandler(Thread):
                 traceback.print_exc()
         self.close()
 
-
     def tellWhoArePresent(self):
         if self.other_clients:
             self.connection.send('Currently online:\n')

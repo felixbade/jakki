@@ -3,12 +3,18 @@
 
 from sys import argv
 
-from multi_user_server import MultiUserServer
+from chat_server import ChatServer
+
+server = ChatServer()
 
 try:
-    port = int(argv[1])
-    server = MultiUserServer(port)
-except:
-    server = MultiUserServer()
+    server.set_port(int(argv[1]))
+except ValueError:
+    pass
+except IndexError:
+    pass
 
-server.serve_forever()
+try:
+    server.run()
+except KeyboardInterrupt:
+    server.stop()

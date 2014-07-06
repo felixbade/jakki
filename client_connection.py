@@ -3,13 +3,14 @@
 
 from traceback import print_exc
 from threading import Thread
-from socket import gethostbyaddr
+from socket import gethostbyaddr, herror
+
 from ident import getIdent
 
 def tryToGetHostnameFromIp(ip):
     try:
         return gethostbyaddr(ip)[0]
-    except socket.herror:
+    except herror:
         return ip
 
 class ClientConnection(Thread):
@@ -20,8 +21,12 @@ class ClientConnection(Thread):
         self.server = server
         self.connection = connection
         self.address = address
-        self.ident = getIdent(address, server.port, timeout=3)
+        self.userident = getIdent(address, server.port, 3) # 3 sec timeout
         self.hostname = tryToGetHostnameFromIp(address[0])
+        if self.userident is not None:
+            self.userhost = self.userident + '@' + self.hostname
+        else:
+            self.userhost = self.hostname
         
         self.daemon = True
         self.start()
@@ -32,15 +37,18 @@ class ClientConnection(Thread):
             while True:
                 line = socketfile.readline()
                 if line == '':
-                    self.close()
+                    self.server.close_connection(self)
                     break
-                self.handle(line)
+                self.server.handle_line(self, line)
         except:
             print_exc()
-            self.close()
-
-    def handle(self, line):
-        pass
-
-    def close(self):
-        pass
+            self.server.close_connection()
+    
+    def send(self, data):
+        for line in data.split('\n'):
+            line = line.replace('\r', '').replace('\0', '')
+            if line:
+                self.connection.send(line + '\n')
+    
+    def close_connection(self):
+        self.connection.close()

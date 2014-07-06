@@ -3,12 +3,12 @@
 
 import socket
 
-def getIdent(remote_ip, remote_port, local_port, timeout=30):
+def getIdent(remote_address, local_port, timeout=30):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(timeout)
-        s.connect((remote_ip, 113)) # identd default port
-        s.send('%d, %d\n' % (remote_port, local_port))
+        s.connect((remote_address[0], 113)) # identd default port
+        s.send('%d, %d\n' % (remote_address[1], local_port))
         response = s.makefile().readline()
         s.close()
 

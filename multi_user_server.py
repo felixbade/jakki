@@ -1,23 +1,44 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import socket
-
-from client_handler import ClientHandler
+from server_listener import ServerListener
 
 class MultiUserServer:
 
-    def __init__(self, port=4681):
+    def __init__(self, port=0):
+        self.running = False
         self.port = port
         self.clients = []
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.listener = ServerListener(self)
 
-    def serve_forever(self):
-        print 'Starting server... (listening on port %d)' % self.port
-        self.socket.bind(('', self.port))
-        self.socket.listen(10)
-        while True:
-            connection, address = self.socket.accept()
-            new_client = ClientHandler(self, connection, address)
-            self.clients.append(new_client)
+    def set_port(self, port):
+        if not self.running:
+            self.port = port
+
+    def run(self):
+        self.running = True
+        self.listener.serve_forever()
+
+    def new_connection(self, client):
+        self.clients.append(client)
+        self.initialize_session(client)
+
+    def initialize_session(self, client):
+        pass
+
+    def handle_line(self, client, line):
+        pass
+    
+    def close_connection(self, client):
+        self.finish_session(client)
+        client.close_connection()
+        self.clients.remove(client)
+
+    def finish_session(self, client):
+        pass
+    
+    def stop(self):
+        print '\nStopping server...'
+        for client in self.clients:
+            client.close_connection()
+        self.running = False
