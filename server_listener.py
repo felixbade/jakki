@@ -13,10 +13,12 @@ class ServerListener:
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def serve_forever(self):
-        port = self.server.port
-        self.socket.bind(('', port))
+        self.socket.bind(('', self.server.port))
         self.socket.listen(10)
+        
+        port = self.socket.getsockname()[1]
         print 'Server is now listening on port %d' % port
+        
         while True:
             connection, address = self.socket.accept()
             new_client = ClientConnection(self.server, connection, address)

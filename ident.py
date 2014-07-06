@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# For IDENT protocol documentation, see
+# https://www.ietf.org/rfc/rfc1413.txt
+
 import socket
 
 def getIdent(remote_address, local_port, timeout=30):
@@ -12,8 +15,9 @@ def getIdent(remote_address, local_port, timeout=30):
         response = s.makefile().readline()
         s.close()
 
-        if response.split(':')[1] == 'USERID':
-            user = ':'.join(response.split(':')[3:]).replace('\n', '')
+        response = response.split(':')
+        if response[1] == 'USERID':
+            user = ':'.join(response[3:])
             user = user.replace('\0', '')
             user = user.replace('\n', '')
             user = user.replace('\r', '')

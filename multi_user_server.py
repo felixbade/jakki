@@ -30,9 +30,11 @@ class MultiUserServer:
         pass
     
     def close_connection(self, client):
-        self.finish_session(client)
-        client.close_connection()
-        self.clients.remove(client)
+        try:
+            self.finish_session(client)
+            client.close_connection()
+        finally:
+            self.clients.remove(client)
 
     def finish_session(self, client):
         pass

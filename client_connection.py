@@ -39,10 +39,13 @@ class ClientConnection(Thread):
                 if line == '':
                     self.server.close_connection(self)
                     break
+                line = line.replace('\n', '')
+                line = line.replace('\r', '')
+                line = line.replace('\0', '')
                 self.server.handle_line(self, line)
         except:
             print_exc()
-            self.server.close_connection()
+            self.server.close_connection(self)
     
     def send(self, data):
         for line in data.split('\n'):
